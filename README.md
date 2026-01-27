@@ -1,59 +1,90 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ✨ Quickies
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A personal utility dashboard built with Laravel, featuring a collection of browser-based tools for quick tasks. No authentication needed—just fast, beautiful utilities.
 
-## About Laravel
+## 🎯 About
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Quickies is a sleek, modern dashboard that houses various utility tools for everyday tasks. Built with Laravel and styled with a stunning purple gradient theme, each tool runs entirely in the browser for instant results.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Available Tools
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🎨 Color Palette Viewer
+View and compare color codes to see how different colors look together:
+- Enter multiple color codes (hex, rgb, or hsl)
+- See each color displayed against all other colors
+- Interactive color combination matrix
+- Copy color codes to clipboard
+- Perfect for designers and developers choosing color schemes
 
-## Learning Laravel
+### 🖼️ PNG to SVG Converter
+Convert PNG images to scalable vector graphics:
+- Drag & drop PNG files
+- Adjustable conversion settings (color limit, detail level, blur)
+- Side-by-side preview comparison
+- Instant download of SVG files
+- Great for creating scalable icons and graphics
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 📦 Image Compressor
+Compress JPG and PNG images while maintaining quality:
+- Support for multiple image uploads
+- Adjustable quality slider (10-100%)
+- Optional image resizing with max width
+- Real-time compression preview
+- Shows file size reduction percentage
+- Download individually or batch download all
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Installation
 
-## Laravel Sponsors
+1. Clone the repository
+```bash
+git clone <your-repo-url>
+cd quickies
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. Install dependencies
+```bash
+composer install
+npm install
+```
 
-### Premium Partners
+3. Set up environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+4. Start the development servers
+```bash
+npm run dev
+php artisan serve
+```
 
-## Contributing
+5. Open your browser to `http://localhost:8000`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🎨 Features
 
-## Code of Conduct
+- **Beautiful UI**: Glassmorphic design with gradient backgrounds
+- **No Auth Required**: Simple, instant access to all tools
+- **Browser-Based**: All processing happens client-side
+- **Responsive**: Works on desktop and mobile devices
+- **Fast**: No server processing or uploads needed
+- **Extensible**: Easy to add new utility tools
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🔧 Tech Stack
 
-## Security Vulnerabilities
+- **Backend**: Laravel 11
+- **Frontend**: Tailwind CSS 4, Vite
+- **Libraries**: 
+  - ImageTracer.js (PNG to SVG conversion)
+  - browser-image-compression (Image compression)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 📝 Adding New Quickies
 
-## License
+1. Create a new controller in `app/Http/Controllers/`
+2. Create a view in `resources/views/quickies/`
+3. Add a route in `routes/web.php`
+4. Add a card to the dashboard in `resources/views/dashboard.blade.php`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
