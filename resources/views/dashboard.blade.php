@@ -140,17 +140,47 @@
                     </div>
                 </a>
 
-                <!-- Placeholder for more quickies -->
-                <div class="group block cursor-not-allowed">
-                    <div class="relative bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg border border-white/10 border-dashed p-8 h-full flex flex-col items-center justify-center opacity-50">
-                        <svg class="w-16 h-16 text-purple-400/50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <p class="text-purple-300/50 text-center font-semibold">More Quickies</p>
-                        <p class="text-purple-300/30 text-center text-sm mt-2">Coming Soon</p>
+                <!-- Image Cropper Card -->
+                <a href="/image-cropper" class="group block">
+                    <div class="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 hover:border-orange-400/50 transition-all duration-300 hover:scale-105 hover:shadow-orange-500/25 h-full">
+                        <!-- Icon -->
+                        <div class="mb-6 flex justify-center">
+                            <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:rotate-3">
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h3M3 4v3m18-3h-3m3 0v3M3 20h3m-3 0v-3m18 3h-3m3 0v-3"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h3 class="text-2xl font-bold text-white mb-3 text-center group-hover:text-orange-300 transition-colors">
+                            Image Cropper
+                        </h3>
+                        
+                        <!-- Description -->
+                        <p class="text-purple-200/80 text-center text-sm leading-relaxed mb-6">
+                            Crop PNG images while preserving transparency
+                        </p>
+                        
+                        <!-- Format Preview -->
+                        <div class="flex gap-2 justify-center items-center">
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg text-xs font-semibold border border-blue-400/30">PNG</span>
+                            <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                            <span class="px-3 py-1 bg-orange-500/20 text-orange-300 rounded-lg text-xs font-semibold border border-orange-400/30">PNG</span>
+                        </div>
+                        
+                        <!-- Hover Arrow -->
+                        <div class="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
+                </a>
 
+                <!-- Placeholder for more quickies -->
                 <div class="group block cursor-not-allowed">
                     <div class="relative bg-white/5 backdrop-blur-lg rounded-3xl shadow-lg border border-white/10 border-dashed p-8 h-full flex flex-col items-center justify-center opacity-50">
                         <svg class="w-16 h-16 text-purple-400/50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
