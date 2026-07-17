@@ -5,8 +5,15 @@
 
 @push('head')
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+@include('partials.pdf-render')
+<style>
+    /* Force safe rgb/hex colours so html2canvas never sees Tailwind's oklch() values. */
+    #docContent, #docContent * { color: #0f172a !important; border-color: #cbd5e1 !important; background-image: none !important; }
+    #docContent { background: #ffffff !important; box-shadow: none !important; }
+    #docContent a { color: #1d4ed8 !important; }
+    #docContent th, #docContent td { border: 1px solid #cbd5e1 !important; }
+    #docContent h1, #docContent h2, #docContent h3 { color: #0f172a !important; }
+</style>
 @endpush
 
 @section('content')
@@ -34,8 +41,8 @@
                 <button onclick="downloadPdf()" id="downloadBtn" class="rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 px-5 py-2 font-semibold text-white shadow transition hover:scale-[1.02] active:scale-95 disabled:opacity-50">Download PDF</button>
             </div>
             <p class="mb-2 text-sm font-semibold text-slate-200">Preview</p>
-            <div class="max-h-[500px] overflow-y-auto rounded-2xl border border-white/10 bg-slate-200 p-2">
-                <div id="docContent" class="mx-auto bg-white px-10 py-8 text-slate-900 shadow" style="width: 720px; max-width: 100%; font-family: Georgia, 'Times New Roman', serif; line-height: 1.6;"></div>
+            <div class="max-h-[500px] overflow-y-auto rounded-2xl border border-white/10 p-2" style="background:#e2e8f0;">
+                <div id="docContent" class="mx-auto px-10 py-8" style="width: 720px; max-width: 100%; background:#ffffff; color:#0f172a; font-family: Georgia, 'Times New Roman', serif; line-height: 1.6;"></div>
             </div>
         </div>
     </div>
@@ -69,20 +76,19 @@
         }
     }
 
-    function downloadPdf() {
-        const { jsPDF } = window.jspdf;
-        const el = document.getElementById('docContent');
+    async function downloadPdf() {
         const btn = document.getElementById('downloadBtn');
         btn.disabled = true;
         showNotification('Generating PDF…', 'info');
-        const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
-        pdf.html(el, {
-            callback: (doc) => { doc.save(docName + '.pdf'); btn.disabled = false; showNotification('PDF downloaded!', 'success'); },
-            margin: [36, 36, 36, 36],
-            autoPaging: 'text',
-            width: 523,
-            windowWidth: 720,
-        });
+        try {
+            await window.htmlToPdfDoc(document.getElementById('docContent').innerHTML, docName + '.pdf');
+            showNotification('PDF downloaded!', 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('PDF generation failed.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
     }
 </script>
 @endpush
