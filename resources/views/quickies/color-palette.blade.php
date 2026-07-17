@@ -1,272 +1,164 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quickies Dashboard</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="mb-12 text-center">
-            <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 mb-2">
-                Quickies
-            </h1>
-            <p class="text-purple-300 text-lg">Your personal utility dashboard</p>
-        </header>
+@extends('layouts.app')
 
-        <!-- Color Palette Viewer -->
-        <div class="max-w-5xl mx-auto">
-            <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-3xl font-bold text-white flex items-center gap-3">
-                        <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-                        </svg>
-                        Color Palette Viewer
-                    </h2>
-                </div>
+@section('title', 'Color Palette')
+@section('description', 'Preview color codes and compare how they pair together.')
 
-                <!-- Input Section -->
-                <div class="mb-8">
-                    <label class="block text-purple-200 text-sm font-semibold mb-3">
-                        Enter Color Codes (one per line or comma-separated)
-                    </label>
-                    <textarea 
-                        id="colorInput" 
-                        rows="4" 
-                        class="w-full px-4 py-3 bg-white/5 border border-purple-500/30 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                        placeholder="e.g., #FF6B9D, #C44569, #FFA07A or enter hex, rgb, hsl codes..."
-                    >#FF6B9D
+@section('content')
+    <x-tool-header
+        title="Color Palette"
+        subtitle="Preview colors and compare how they pair together."
+        from="from-fuchsia-500"
+        to="to-pink-500"
+        icon="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-8">
+        {{-- Input --}}
+        <label for="colorInput" class="mb-2 block text-sm font-semibold text-slate-200">
+            Enter color codes <span class="font-normal text-slate-400">(one per line, comma or space separated)</span>
+        </label>
+        <textarea id="colorInput" rows="4"
+            class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm text-white placeholder-slate-500 transition focus:border-fuchsia-400/60 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30"
+            placeholder="#FF6B9D, #C44569, rgb(74,144,226)…">#FF6B9D
 #C44569
 #FFA07A
 #4A90E2
 #50C878</textarea>
-                    <button 
-                        onclick="generatePalette()" 
-                        class="mt-4 px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                    >
-                        Generate Palette
-                    </button>
-                </div>
 
-                <!-- Color Grid Display -->
-                <div id="colorGrid" class="grid grid-cols-1 gap-6">
-                    <!-- Colors will be generated here -->
-                </div>
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button onclick="generatePalette()"
+                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-pink-500 px-6 py-3 font-semibold text-white shadow-lg shadow-pink-500/25 transition hover:scale-[1.02] hover:shadow-pink-500/40 active:scale-95">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Generate palette
+            </button>
+            <button onclick="addRandomColor()"
+                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-slate-200 transition hover:bg-white/10">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add random color
+            </button>
+        </div>
 
-                <!-- Matrix View -->
-                <div id="matrixView" class="mt-8 hidden">
-                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                        Color Combination Matrix
-                    </h3>
-                    <div id="matrixGrid" class="overflow-x-auto">
-                        <!-- Matrix will be generated here -->
-                    </div>
-                </div>
-            </div>
+        {{-- Color cards --}}
+        <div id="colorGrid" class="mt-8 grid grid-cols-1 gap-4"></div>
+
+        {{-- Matrix --}}
+        <div id="matrixView" class="mt-10 hidden">
+            <h2 class="mb-4 flex items-center gap-2 text-xl font-bold text-white">
+                <svg class="h-6 w-6 text-fuchsia-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Combination matrix
+            </h2>
+            <p class="mb-4 text-sm text-slate-400">Each cell shows the row color as text over the column color as background.</p>
+            <div id="matrixGrid" class="-mx-2 overflow-x-auto px-2 pb-2"></div>
         </div>
     </div>
+@endsection
 
-    <script>
-        // Initialize with default colors on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            generatePalette();
-        });
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', generatePalette);
 
-        function generatePalette() {
-            const input = document.getElementById('colorInput').value;
-            const colorGrid = document.getElementById('colorGrid');
-            const matrixView = document.getElementById('matrixView');
-            
-            // Parse colors (support comma, newline, or space separated)
-            const colors = input
-                .split(/[\n,\s]+/)
-                .map(c => c.trim())
-                .filter(c => c.length > 0);
-            
-            if (colors.length === 0) {
-                colorGrid.innerHTML = '<p class="text-purple-300 text-center py-8">Please enter at least one color code</p>';
-                matrixView.classList.add('hidden');
-                return;
-            }
+    function parseColors() {
+        return document.getElementById('colorInput').value
+            .split(/[\n,]+/)
+            .map((c) => c.trim())
+            .filter(Boolean);
+    }
 
-            // Generate individual color cards
-            colorGrid.innerHTML = colors.map((color, index) => {
-                const textColor = getContrastColor(color);
+    function normalizeColor(input) {
+        const el = document.createElement('div');
+        el.style.color = '';
+        el.style.color = input;
+        if (el.style.color === '') return null; // invalid
+        document.body.appendChild(el);
+        const rgb = getComputedStyle(el).color;
+        el.remove();
+        const m = rgb.match(/\d+/g);
+        if (!m) return null;
+        return { r: +m[0], g: +m[1], b: +m[2], css: input };
+    }
+
+    function toHex({ r, g, b }) {
+        return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function getContrastColor({ r, g, b }) {
+        const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return lum > 0.55 ? '#0f172a' : '#ffffff';
+    }
+
+    function generatePalette() {
+        const grid = document.getElementById('colorGrid');
+        const matrixView = document.getElementById('matrixView');
+        const raw = parseColors();
+
+        const colors = raw.map((c) => ({ input: c, rgb: normalizeColor(c) })).filter((c) => c.rgb);
+
+        if (colors.length === 0) {
+            grid.innerHTML = '<p class="rounded-2xl border border-white/10 bg-white/5 px-4 py-8 text-center text-slate-400">Enter at least one valid color code above.</p>';
+            matrixView.classList.add('hidden');
+            return;
+        }
+
+        grid.innerHTML = colors.map((color) => {
+            const hex = toHex(color.rgb);
+            const textOn = getContrastColor(color.rgb);
+            const swatches = colors.map((bg) => {
+                if (bg.input === color.input) return '';
                 return `
-                    <div class="group relative bg-white/5 rounded-2xl overflow-hidden border border-white/10 hover:border-purple-400/50 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20">
-                        <div class="flex items-stretch">
-                            <!-- Color Preview -->
-                            <div class="w-32 flex-shrink-0 relative" style="background: ${color};">
-                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all"></div>
+                    <div class="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-1.5" style="background:${bg.input};">
+                        <span class="text-sm font-bold" style="color:${color.input};">Aa</span>
+                        <span class="font-mono text-[11px] opacity-80" style="color:${color.input};">${toHex(bg.rgb)}</span>
+                    </div>`;
+            }).join('');
+            return `
+                <div class="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                    <div class="flex flex-col sm:flex-row">
+                        <button type="button" onclick="copyToClipboard('${hex}', 'Copied ${hex}')" class="relative h-24 w-full flex-shrink-0 sm:h-auto sm:w-40" style="background:${color.input};" title="Copy ${hex}">
+                            <span class="absolute bottom-2 left-3 rounded-md bg-black/30 px-2 py-0.5 font-mono text-xs font-bold" style="color:${textOn};">${hex}</span>
+                        </button>
+                        <div class="flex-1 p-4 sm:p-5">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <span class="font-mono text-base font-bold text-white">${hex}</span>
+                                <button onclick="copyToClipboard('${hex}', 'Copied ${hex}')" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Copy</button>
                             </div>
-                            
-                            <!-- Color Info -->
-                            <div class="flex-grow p-6 flex flex-col justify-center">
-                                <div class="flex items-center justify-between mb-4">
-                                    <span class="text-lg font-mono font-bold text-white">${color.toUpperCase()}</span>
-                                    <button 
-                                        onclick="copyToClipboard('${color}')" 
-                                        class="px-3 py-1 bg-purple-500/20 hover:bg-purple-500/40 text-purple-300 rounded-lg text-sm transition-all"
-                                        title="Copy to clipboard"
-                                    >
-                                        Copy
-                                    </button>
-                                </div>
-                                
-                                <!-- Color against all other colors -->
-                                <div class="flex flex-wrap gap-3">
-                                    ${colors.map((bgColor, bgIndex) => {
-                                        if (index === bgIndex) return '';
-                                        return `
-                                            <div class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10" style="background: ${bgColor};">
-                                                <span class="font-semibold text-sm" style="color: ${color};">Aa</span>
-                                                <span class="text-xs opacity-75" style="color: ${color};">${bgColor}</span>
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
+                            <div class="flex flex-wrap gap-2">${swatches || '<span class="text-xs text-slate-500">Add more colors to compare.</span>'}</div>
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>`;
+        }).join('');
 
-            // Generate matrix view
-            if (colors.length > 1) {
-                matrixView.classList.remove('hidden');
-                generateMatrix(colors);
-            } else {
-                matrixView.classList.add('hidden');
-            }
+        if (colors.length > 1) {
+            matrixView.classList.remove('hidden');
+            generateMatrix(colors);
+        } else {
+            matrixView.classList.add('hidden');
         }
+    }
 
-        function generateMatrix(colors) {
-            const matrixGrid = document.getElementById('matrixGrid');
-            
-            let matrixHTML = '<table class="w-full border-collapse">';
-            
-            // Header row
-            matrixHTML += '<tr><th class="p-3 bg-white/5 border border-white/10"></th>';
-            colors.forEach(color => {
-                matrixHTML += `<th class="p-3 bg-white/5 border border-white/10">
-                    <div class="w-16 h-16 rounded-lg shadow-lg mx-auto" style="background: ${color};" title="${color}"></div>
-                </th>`;
+    function generateMatrix(colors) {
+        const cell = (c) => `<div class="mx-auto h-12 w-12 rounded-lg border border-white/10 shadow" style="background:${c.input};" title="${toHex(c.rgb)}"></div>`;
+        let html = '<table class="w-full border-separate border-spacing-1"><thead><tr><th class="p-1"></th>';
+        colors.forEach((c) => { html += `<th class="p-1">${cell(c)}</th>`; });
+        html += '</tr></thead><tbody>';
+        colors.forEach((fg) => {
+            html += `<tr><td class="p-1">${cell(fg)}</td>`;
+            colors.forEach((bg) => {
+                if (fg.input === bg.input) {
+                    html += '<td class="p-1"><div class="flex h-14 items-center justify-center rounded-lg bg-white/5 text-slate-500">—</div></td>';
+                } else {
+                    html += `<td class="p-1"><div class="flex h-14 items-center justify-center rounded-lg" style="background:${bg.input};color:${fg.input};"><span class="text-lg font-bold">Aa</span></div></td>`;
+                }
             });
-            matrixHTML += '</tr>';
-            
-            // Data rows
-            colors.forEach((fgColor, rowIndex) => {
-                matrixHTML += '<tr>';
-                matrixHTML += `<td class="p-3 bg-white/5 border border-white/10">
-                    <div class="w-16 h-16 rounded-lg shadow-lg mx-auto" style="background: ${fgColor};" title="${fgColor}"></div>
-                </td>`;
-                
-                colors.forEach((bgColor, colIndex) => {
-                    const isMatch = rowIndex === colIndex;
-                    matrixHTML += `<td class="p-3 border border-white/10 ${isMatch ? 'bg-white/5' : 'bg-black/20'}">
-                        ${isMatch ? 
-                            '<span class="text-purple-300 text-xs">—</span>' : 
-                            `<div class="text-center py-2 px-3 rounded-lg" style="background: ${bgColor}; color: ${fgColor};">
-                                <div class="font-bold text-lg mb-1">Aa</div>
-                                <div class="text-xs opacity-75">Sample</div>
-                            </div>`
-                        }
-                    </td>`;
-                });
-                matrixHTML += '</tr>';
-            });
-            
-            matrixHTML += '</table>';
-            matrixGrid.innerHTML = matrixHTML;
-        }
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('matrixGrid').innerHTML = html;
+    }
 
-        function getContrastColor(hexColor) {
-            // Convert hex to RGB
-            const rgb = hexColor.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
-            if (!rgb) return '#000000';
-            
-            const r = parseInt(rgb[1], 16);
-            const g = parseInt(rgb[2], 16);
-            const b = parseInt(rgb[3], 16);
-            
-            // Calculate luminance
-            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-            
-            return luminance > 0.5 ? '#000000' : '#FFFFFF';
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // Show a brief notification
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-purple-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
-                notification.textContent = `Copied: ${text}`;
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.classList.add('animate-fade-out');
-                    setTimeout(() => notification.remove(), 300);
-                }, 2000);
-            });
-        }
-    </script>
-
-    <style>
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fade-out {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-        }
-
-        .animate-fade-in {
-            animation: fade-in 0.3s ease-out;
-        }
-
-        .animate-fade-out {
-            animation: fade-out 0.3s ease-out;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(168, 85, 247, 0.4);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(168, 85, 247, 0.6);
-        }
-    </style>
-</body>
-</html>
+    function addRandomColor() {
+        const hex = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase();
+        const ta = document.getElementById('colorInput');
+        ta.value = (ta.value.trim() + '\n' + hex).trim();
+        generatePalette();
+    }
+</script>
+@endpush

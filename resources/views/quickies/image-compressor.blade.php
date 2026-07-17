@@ -1,415 +1,231 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Compressor - Quickies</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="mb-12">
-            <div class="flex items-center gap-4 mb-6">
-                <a href="/" class="text-purple-300 hover:text-purple-200 transition-colors">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                </a>
-                <div>
-                    <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400">
-                        Image Compressor
-                    </h1>
-                    <p class="text-purple-300 mt-1">Compress JPG and PNG images while maintaining quality</p>
+@extends('layouts.app')
+
+@section('title', 'Image Compressor')
+@section('description', 'Compress JPG, PNG and WebP images while keeping quality.')
+
+@push('head')
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+@endpush
+
+@section('content')
+    <x-tool-header
+        title="Image Compressor"
+        subtitle="Shrink JPG, PNG and WebP images while keeping quality."
+        from="from-blue-500"
+        to="to-cyan-500"
+        icon="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+
+    <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-8">
+        {{-- Upload --}}
+        <div id="uploadSection">
+            <div id="dropZone"
+                 class="cursor-pointer rounded-2xl border-2 border-dashed border-cyan-400/40 bg-white/5 px-6 py-12 text-center transition hover:border-cyan-400 hover:bg-white/10"
+                 onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" multiple class="hidden" onchange="handleFileSelect(event)">
+                <svg class="mx-auto mb-4 h-16 w-16 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <h3 class="text-xl font-bold text-white">Drop images here</h3>
+                <p class="mt-1 text-slate-400">or click to browse — multiple files allowed</p>
+                <p class="mt-3 text-xs text-slate-500">JPG · PNG · WebP</p>
+            </div>
+        </div>
+
+        {{-- Processing --}}
+        <div id="processingSection" class="hidden">
+            <div class="mb-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+                <h3 class="mb-5 text-base font-bold text-white">Compression settings</h3>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-slate-200">Quality</label>
+                        <input type="range" id="quality" min="10" max="100" value="80" class="w-full" oninput="updateQuality()">
+                        <p class="mt-2 text-center text-sm text-slate-400"><span id="qualityValue">80</span>%</p>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-slate-200">Max width (px)</label>
+                        <input type="number" id="maxWidth" value="0" min="0" step="100"
+                               class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white transition focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
+                        <p class="mt-2 text-center text-xs text-slate-500">0 = keep original size</p>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-slate-200">Output format</label>
+                        <select id="outputFormat" class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white transition focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/30">
+                            <option value="" class="bg-slate-900">Keep original</option>
+                            <option value="image/jpeg" class="bg-slate-900">JPG</option>
+                            <option value="image/png" class="bg-slate-900">PNG</option>
+                            <option value="image/webp" class="bg-slate-900">WebP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <button onclick="compressAll()" class="flex-1 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-3 font-semibold text-white shadow-lg shadow-cyan-500/25 transition hover:scale-[1.02] active:scale-95">Compress all</button>
+                    <button onclick="downloadAll()" id="downloadAllBtn" disabled class="flex-1 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Download all</button>
                 </div>
             </div>
-        </header>
 
-        <!-- Main Content -->
-        <div class="max-w-5xl mx-auto">
-            <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8">
-                
-                <!-- Upload Section -->
-                <div id="uploadSection">
-                    <div class="border-2 border-dashed border-blue-400/50 rounded-2xl p-12 text-center hover:border-blue-400 transition-all cursor-pointer bg-white/5 hover:bg-white/10"
-                         ondrop="handleDrop(event)" 
-                         ondragover="handleDragOver(event)"
-                         ondragleave="handleDragLeave(event)"
-                         onclick="document.getElementById('fileInput').click()">
-                        <input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png" multiple class="hidden" onchange="handleFileSelect(event)">
-                        
-                        <svg class="w-20 h-20 mx-auto mb-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        
-                        <h3 class="text-2xl font-bold text-white mb-2">Drop Images Here</h3>
-                        <p class="text-purple-300 mb-4">or click to browse</p>
-                        <p class="text-purple-400/60 text-sm">Supports JPG and PNG files (multiple files allowed)</p>
-                    </div>
-                </div>
+            <div id="imagesGrid" class="grid grid-cols-1 gap-5"></div>
 
-                <!-- Processing Section -->
-                <div id="processingSection" class="hidden mt-8">
-                    
-                    <!-- Compression Settings -->
-                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8">
-                        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                            </svg>
-                            Compression Settings
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label class="block text-purple-200 text-sm font-semibold mb-3">
-                                    Quality (Higher = Better Quality, Larger Size)
-                                </label>
-                                <input type="range" id="quality" min="10" max="100" value="80" 
-                                       class="w-full accent-blue-500"
-                                       onchange="updateQuality()">
-                                <div class="text-purple-300 text-sm mt-2 text-center">
-                                    <span id="qualityValue">80</span>%
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-purple-200 text-sm font-semibold mb-3">
-                                    Max Width (0 = No Resize)
-                                </label>
-                                <input type="number" id="maxWidth" value="0" min="0" step="100"
-                                       class="w-full px-4 py-2 bg-white/5 border border-blue-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                       onchange="updateSettings()">
-                                <div class="text-purple-300/60 text-xs mt-2 text-center">
-                                    Aspect ratio will be preserved
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <button onclick="compressAll()" 
-                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                                Compress All Images
-                            </button>
-                            <button onclick="downloadAll()" 
-                                    id="downloadAllBtn"
-                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled>
-                                Download All
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Images Grid -->
-                    <div id="imagesGrid" class="grid grid-cols-1 gap-6">
-                        <!-- Image cards will be generated here -->
-                    </div>
-
-                    <!-- Reset Button -->
-                    <div class="mt-6 text-center">
-                        <button onclick="resetCompressor()" 
-                                class="px-6 py-2 text-purple-300 hover:text-white border border-purple-400/50 hover:border-purple-400 rounded-xl transition-all">
-                            Upload Different Images
-                        </button>
-                    </div>
-                </div>
-
+            <div class="mt-5 text-center">
+                <button onclick="resetCompressor()" class="rounded-xl border border-white/10 px-5 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white">Upload different images</button>
             </div>
         </div>
     </div>
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
-    <script>
-        let uploadedFiles = [];
-        let compressedImages = [];
+@push('scripts')
+<script>
+    let uploadedFiles = [];
+    let compressedImages = [];
 
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.currentTarget.classList.add('border-blue-400', 'bg-white/20');
-        }
+    const dropZone = document.getElementById('dropZone');
+    ['dragover', 'dragenter'].forEach((ev) => dropZone.addEventListener(ev, (e) => { e.preventDefault(); dropZone.classList.add('border-cyan-400', 'bg-white/10'); }));
+    ['dragleave', 'dragend'].forEach((ev) => dropZone.addEventListener(ev, () => dropZone.classList.remove('border-cyan-400', 'bg-white/10')));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-cyan-400', 'bg-white/10');
+        processFiles(Array.from(e.dataTransfer.files));
+    });
 
-        function handleDragLeave(e) {
-            e.currentTarget.classList.remove('border-blue-400', 'bg-white/20');
-        }
+    function handleFileSelect(e) { processFiles(Array.from(e.target.files)); }
 
-        function handleDrop(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('border-blue-400', 'bg-white/20');
-            
-            const files = Array.from(e.dataTransfer.files);
-            processFiles(files);
-        }
+    function processFiles(files) {
+        const valid = files.filter((f) => ['image/jpeg', 'image/png', 'image/webp'].includes(f.type));
+        if (valid.length === 0) return showNotification('Please select JPG, PNG or WebP images.', 'error');
+        uploadedFiles = valid;
+        compressedImages = new Array(valid.length).fill(null);
+        document.getElementById('uploadSection').classList.add('hidden');
+        document.getElementById('processingSection').classList.remove('hidden');
+        displayImages();
+        updateDownloadAllButton();
+    }
 
-        function handleFileSelect(e) {
-            const files = Array.from(e.target.files);
-            processFiles(files);
-        }
+    function displayImages() {
+        const grid = document.getElementById('imagesGrid');
+        grid.innerHTML = '';
+        uploadedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => grid.appendChild(createImageCard(file, e.target.result, index));
+            reader.readAsDataURL(file);
+        });
+    }
 
-        function processFiles(files) {
-            const validFiles = files.filter(file => 
-                file.type === 'image/jpeg' || file.type === 'image/jpg' || file.type === 'image/png'
-            );
-
-            if (validFiles.length === 0) {
-                showNotification('Please select valid JPG or PNG images', 'error');
-                return;
-            }
-
-            uploadedFiles = validFiles;
-            compressedImages = new Array(validFiles.length).fill(null);
-            
-            document.getElementById('uploadSection').classList.add('hidden');
-            document.getElementById('processingSection').classList.remove('hidden');
-            
-            displayImages();
-        }
-
-        function displayImages() {
-            const grid = document.getElementById('imagesGrid');
-            grid.innerHTML = '';
-
-            uploadedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const card = createImageCard(file, e.target.result, index);
-                    grid.appendChild(card);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function createImageCard(file, dataUrl, index) {
-            const div = document.createElement('div');
-            div.className = 'bg-white/5 rounded-2xl p-6 border border-white/10';
-            div.id = `image-${index}`;
-            
-            div.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Original -->
-                    <div>
-                        <h4 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            Original
-                        </h4>
-                        <div class="bg-white/10 rounded-xl p-4 mb-3">
-                            <img src="${dataUrl}" class="w-full h-48 object-contain" />
-                        </div>
-                        <div class="text-purple-200 text-sm space-y-1">
-                            <div><strong>Name:</strong> ${file.name}</div>
-                            <div><strong>Size:</strong> ${formatFileSize(file.size)}</div>
-                            <div><strong>Type:</strong> ${file.type.split('/')[1].toUpperCase()}</div>
-                        </div>
+    function createImageCard(file, dataUrl, index) {
+        const div = document.createElement('div');
+        div.className = 'rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5';
+        div.id = `image-${index}`;
+        div.innerHTML = `
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div>
+                    <h4 class="mb-3 text-sm font-bold uppercase tracking-wide text-slate-300">Original</h4>
+                    <div class="checkerboard mb-3 flex h-44 items-center justify-center rounded-xl p-2">
+                        <img src="${dataUrl}" class="max-h-full max-w-full object-contain" alt="">
                     </div>
-
-                    <!-- Compressed -->
-                    <div>
-                        <h4 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Compressed
-                        </h4>
-                        <div id="compressed-preview-${index}" class="bg-white/10 rounded-xl p-4 mb-3 flex items-center justify-center h-48">
-                            <span class="text-purple-300/50">Not compressed yet</span>
-                        </div>
-                        <div id="compressed-info-${index}" class="text-purple-200 text-sm space-y-1">
-                            <div class="text-purple-300/50">Compress to see results</div>
-                        </div>
+                    <div class="space-y-1 text-sm text-slate-400">
+                        <div class="truncate"><span class="text-slate-500">Name:</span> ${file.name}</div>
+                        <div><span class="text-slate-500">Size:</span> ${formatFileSize(file.size)} · ${file.type.split('/')[1].toUpperCase()}</div>
                     </div>
                 </div>
-
-                <div class="mt-4 flex gap-3">
-                    <button onclick="compressImage(${index})" 
-                            class="flex-1 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 rounded-lg transition-all text-sm font-semibold">
-                        Compress This Image
-                    </button>
-                    <button onclick="downloadImage(${index})" 
-                            id="download-${index}"
-                            class="flex-1 px-4 py-2 bg-green-500/20 hover:bg-green-500/40 text-green-300 rounded-lg transition-all text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled>
-                        Download
-                    </button>
+                <div>
+                    <h4 class="mb-3 text-sm font-bold uppercase tracking-wide text-slate-300">Compressed</h4>
+                    <div id="compressed-preview-${index}" class="checkerboard mb-3 flex h-44 items-center justify-center rounded-xl p-2 text-sm text-slate-500">Not compressed yet</div>
+                    <div id="compressed-info-${index}" class="space-y-1 text-sm text-slate-500">Compress to see results</div>
                 </div>
-            `;
+            </div>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                <button onclick="compressImage(${index})" class="flex-1 rounded-xl bg-blue-500/20 px-4 py-2.5 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/30">Compress</button>
+                <button onclick="downloadImage(${index})" id="download-${index}" disabled class="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40">Download</button>
+            </div>`;
+        return div;
+    }
 
-            return div;
-        }
+    function targetExtension(mime, fallbackName) {
+        if (mime === 'image/jpeg') return '.jpg';
+        if (mime === 'image/png') return '.png';
+        if (mime === 'image/webp') return '.webp';
+        const m = fallbackName.match(/\.[^.]+$/);
+        return m ? m[0] : '';
+    }
 
-        async function compressImage(index) {
-            const file = uploadedFiles[index];
-            const quality = parseInt(document.getElementById('quality').value) / 100;
-            const maxWidth = parseInt(document.getElementById('maxWidth').value);
-
-            showNotification(`Compressing ${file.name}...`, 'info');
-
-            const options = {
-                maxSizeMB: 10,
-                maxWidthOrHeight: maxWidth > 0 ? maxWidth : undefined,
-                useWebWorker: true,
-                quality: quality
+    async function compressImage(index) {
+        const file = uploadedFiles[index];
+        const quality = parseInt(document.getElementById('quality').value) / 100;
+        const maxWidth = parseInt(document.getElementById('maxWidth').value) || 0;
+        const fileType = document.getElementById('outputFormat').value || undefined;
+        showNotification(`Compressing ${file.name}…`, 'info');
+        const options = {
+            maxSizeMB: 30,
+            maxWidthOrHeight: maxWidth > 0 ? maxWidth : undefined,
+            useWebWorker: true,
+            initialQuality: quality,
+            fileType,
+        };
+        try {
+            const compressed = await imageCompression(file, options);
+            compressedImages[index] = compressed;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(`compressed-preview-${index}`).innerHTML = `<img src="${e.target.result}" class="max-h-full max-w-full object-contain" alt="">`;
+                const reduction = ((1 - compressed.size / file.size) * 100).toFixed(1);
+                const positive = compressed.size < file.size;
+                document.getElementById(`compressed-info-${index}`).innerHTML = `
+                    <div class="text-slate-400"><span class="text-slate-500">Size:</span> ${formatFileSize(compressed.size)} · ${(compressed.type.split('/')[1] || '').toUpperCase()}</div>
+                    <div class="font-semibold ${positive ? 'text-emerald-400' : 'text-amber-400'}">${positive ? 'Saved' : 'Increased'} ${Math.abs(reduction)}% (${formatFileSize(Math.abs(file.size - compressed.size))})</div>`;
+                document.getElementById(`download-${index}`).disabled = false;
+                updateDownloadAllButton();
             };
-
-            try {
-                const compressedFile = await imageCompression(file, options);
-                compressedImages[index] = compressedFile;
-
-                // Display compressed image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById(`compressed-preview-${index}`);
-                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain" />`;
-
-                    const info = document.getElementById(`compressed-info-${index}`);
-                    const reduction = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
-                    info.innerHTML = `
-                        <div><strong>Size:</strong> ${formatFileSize(compressedFile.size)}</div>
-                        <div class="text-green-400"><strong>Saved:</strong> ${reduction}% (${formatFileSize(file.size - compressedFile.size)})</div>
-                    `;
-
-                    document.getElementById(`download-${index}`).disabled = false;
-                    updateDownloadAllButton();
-                };
-                reader.readAsDataURL(compressedFile);
-
-                showNotification(`${file.name} compressed successfully!`, 'success');
-            } catch (error) {
-                showNotification(`Error compressing ${file.name}`, 'error');
-                console.error(error);
-            }
+            reader.readAsDataURL(compressed);
+            showNotification(`${file.name} compressed!`, 'success');
+        } catch (err) {
+            console.error(err);
+            showNotification(`Error compressing ${file.name}.`, 'error');
         }
+    }
 
-        async function compressAll() {
-            for (let i = 0; i < uploadedFiles.length; i++) {
-                if (!compressedImages[i]) {
-                    await compressImage(i);
-                }
-            }
+    async function compressAll() {
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            if (!compressedImages[i]) await compressImage(i);
         }
+    }
 
-        function downloadImage(index) {
-            if (!compressedImages[index]) {
-                showNotification('Please compress the image first', 'error');
-                return;
-            }
+    function downloadImage(index) {
+        const img = compressedImages[index];
+        if (!img) return showNotification('Compress the image first.', 'error');
+        const base = uploadedFiles[index].name.replace(/\.[^.]+$/, '');
+        const url = URL.createObjectURL(img);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${base}-min${targetExtension(img.type, uploadedFiles[index].name)}`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
-            const url = URL.createObjectURL(compressedImages[index]);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'compressed-' + uploadedFiles[index].name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
+    function downloadAll() {
+        const ready = compressedImages.map((v, i) => (v ? i : -1)).filter((i) => i >= 0);
+        if (ready.length === 0) return showNotification('Compress at least one image first.', 'error');
+        ready.forEach((i, n) => setTimeout(() => downloadImage(i), n * 150));
+        showNotification(`Downloading ${ready.length} image${ready.length > 1 ? 's' : ''}…`, 'success');
+    }
 
-        function downloadAll() {
-            compressedImages.forEach((img, index) => {
-                if (img) {
-                    setTimeout(() => downloadImage(index), index * 100);
-                }
-            });
-            showNotification('Downloading all compressed images...', 'success');
-        }
+    function updateDownloadAllButton() {
+        const any = compressedImages.some((img) => img !== null);
+        document.getElementById('downloadAllBtn').disabled = !any;
+    }
 
-        function updateDownloadAllButton() {
-            const allCompressed = compressedImages.every(img => img !== null);
-            document.getElementById('downloadAllBtn').disabled = !allCompressed;
-        }
+    function updateQuality() {
+        document.getElementById('qualityValue').textContent = document.getElementById('quality').value;
+    }
 
-        function updateQuality() {
-            document.getElementById('qualityValue').textContent = document.getElementById('quality').value;
-        }
+    function resetCompressor() {
+        document.getElementById('uploadSection').classList.remove('hidden');
+        document.getElementById('processingSection').classList.add('hidden');
+        document.getElementById('fileInput').value = '';
+        document.getElementById('imagesGrid').innerHTML = '';
+        uploadedFiles = [];
+        compressedImages = [];
+    }
 
-        function updateSettings() {
-            // Settings updated
-        }
-
-        function resetCompressor() {
-            document.getElementById('uploadSection').classList.remove('hidden');
-            document.getElementById('processingSection').classList.add('hidden');
-            document.getElementById('fileInput').value = '';
-            document.getElementById('imagesGrid').innerHTML = '';
-            uploadedFiles = [];
-            compressedImages = [];
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            else if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
-            else return (bytes / 1048576).toFixed(2) + ' MB';
-        }
-
-        function showNotification(message, type = 'info') {
-            const colors = {
-                success: 'bg-green-500',
-                error: 'bg-red-500',
-                info: 'bg-blue-500'
-            };
-            
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.classList.add('animate-fade-out');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-    </script>
-
-    <style>
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fade-out {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-        }
-
-        .animate-fade-in {
-            animation: fade-in 0.3s ease-out;
-        }
-
-        .animate-fade-out {
-            animation: fade-out 0.3s ease-out;
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(168, 85, 247, 0.4);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(168, 85, 247, 0.6);
-        }
-    </style>
-</body>
-</html>
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(2) + ' MB';
+    }
+</script>
+@endpush
