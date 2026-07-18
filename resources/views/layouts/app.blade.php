@@ -26,7 +26,7 @@
     <header class="sticky top-0 z-40">
         <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
             <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-xl">
-                <a href="/" class="flex items-center gap-2.5">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
                     <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-indigo-500 text-lg font-bold shadow-lg shadow-indigo-500/30">Q</span>
                     <span class="text-lg font-bold tracking-tight">Quickies</span>
                 </a>
@@ -59,9 +59,40 @@
                     </div>
                 </div>
 
-                <a href="/" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/10 sm:block">
+                <a href="{{ route('dashboard') }}" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/10 sm:block">
                     Dashboard
                 </a>
+
+                @auth
+                    @unless (auth()->user()->hasActiveSubscription())
+                        <a href="{{ route('pricing') }}" class="hidden rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.03] sm:block">Upgrade</a>
+                    @endunless
+                    <div class="relative hidden md:block" x-account-menu>
+                        <button type="button" data-account-toggle class="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 backdrop-blur-xl transition hover:bg-white/10">
+                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 text-xs font-bold uppercase">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div data-account-panel class="invisible absolute right-0 mt-2 w-60 origin-top-right translate-y-1 scale-95 opacity-0 rounded-2xl border border-white/10 bg-slate-900/90 p-2 shadow-2xl shadow-black/50 backdrop-blur-2xl transition-all duration-150">
+                            <div class="border-b border-white/10 px-3 py-2">
+                                <div class="truncate text-sm font-semibold text-white">{{ auth()->user()->name }}</div>
+                                <div class="truncate text-xs text-slate-500">{{ auth()->user()->email }}</div>
+                                <span class="mt-1 inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-semibold {{ auth()->user()->hasActiveSubscription() ? 'text-emerald-300' : 'text-slate-400' }}">{{ auth()->user()->planLabel() }} plan</span>
+                            </div>
+                            @if (auth()->user()->isAdmin())
+                                <a href="{{ route('admin.dashboard') }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5">Admin panel</a>
+                            @endif
+                            @if (auth()->user()->hasActiveSubscription() && auth()->user()->subscription_status !== 'comp')
+                                <a href="{{ route('billing.portal') }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5">Manage billing</a>
+                            @else
+                                <a href="{{ route('pricing') }}" class="block rounded-xl px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5">Plans &amp; billing</a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-rose-300 transition hover:bg-rose-500/10">Log out</button></form>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ route('login') }}" class="hidden rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur-xl transition hover:bg-white/10 sm:block">Log in</a>
+                    <a href="{{ route('register') }}" class="hidden rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.03] sm:block">Sign up</a>
+                @endauth
 
                 {{-- Mobile menu toggle --}}
                 <button type="button" data-mobile-toggle
@@ -83,7 +114,24 @@
                 </button>
             </div>
             <div class="flex-1 space-y-1 overflow-y-auto p-3">
-                <a href="/" class="flex items-center gap-3 rounded-xl px-3 py-3 font-semibold transition hover:bg-white/5">
+                @auth
+                    <div class="mb-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+                        <div class="truncate text-sm font-semibold text-white">{{ auth()->user()->name }}</div>
+                        <span class="mt-0.5 inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] font-semibold {{ auth()->user()->hasActiveSubscription() ? 'text-emerald-300' : 'text-slate-400' }}">{{ auth()->user()->planLabel() }} plan</span>
+                    </div>
+                    @unless (auth()->user()->hasActiveSubscription())
+                        <a href="{{ route('pricing') }}" class="mb-1 block rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-3 py-3 text-center font-bold text-white">Upgrade to Pro</a>
+                    @endunless
+                    @if (auth()->user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 font-semibold text-slate-200 transition hover:bg-white/5">Admin panel</a>
+                    @endif
+                @else
+                    <div class="mb-2 grid grid-cols-2 gap-2">
+                        <a href="{{ route('login') }}" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-center text-sm font-bold text-white">Log in</a>
+                        <a href="{{ route('register') }}" class="rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-3 py-2.5 text-center text-sm font-bold text-white">Sign up</a>
+                    </div>
+                @endauth
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-3 font-semibold transition hover:bg-white/5">
                     <svg class="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
                 </a>
@@ -194,8 +242,33 @@
             };
             if (mobileToggle) mobileToggle.addEventListener('click', () => setMobile(true));
             document.querySelectorAll('[data-mobile-close]').forEach((el) => el.addEventListener('click', () => setMobile(false)));
+
+            // Account dropdown
+            const accToggle = document.querySelector('[data-account-toggle]');
+            const accPanel = document.querySelector('[data-account-panel]');
+            let accOpen = false;
+            const setAcc = (state) => {
+                accOpen = state;
+                if (!accPanel) return;
+                accPanel.classList.toggle('invisible', !state);
+                accPanel.classList.toggle('opacity-0', !state);
+                accPanel.classList.toggle('scale-95', !state);
+                accPanel.classList.toggle('translate-y-1', !state);
+            };
+            if (accToggle) {
+                accToggle.addEventListener('click', (e) => { e.stopPropagation(); setAcc(!accOpen); });
+                document.addEventListener('click', (e) => { if (accOpen && !e.target.closest('[x-account-menu]')) setAcc(false); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setAcc(false); });
+            }
         })();
     </script>
+
+    @if (session('status'))
+        <script>window.showNotification(@json(session('status')), 'success');</script>
+    @endif
+    @if (session('error'))
+        <script>window.showNotification(@json(session('error')), 'error');</script>
+    @endif
 
     @stack('scripts')
 </body>

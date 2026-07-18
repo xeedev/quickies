@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'tool.gate' => \App\Http\Middleware\GateTool::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

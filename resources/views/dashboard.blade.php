@@ -4,6 +4,10 @@
 @section('description', 'Quickies — a fast, free collection of everyday browser utilities for images, text, security and developers, plus a Smart Toolbox that auto-detects your input.')
 
 @section('content')
+    @php
+        $freeTools = config('plans.free_tools', []);
+        $isPro = auth()->check() && auth()->user()->hasActiveSubscription();
+    @endphp
     {{-- Hero --}}
     <section class="mb-8 text-center sm:mb-10">
         <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-slate-300 backdrop-blur">
@@ -67,6 +71,7 @@
                 </h2>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-dnd-group data-category="{{ \Illuminate\Support\Str::slug($category) }}">
                     @foreach ($group as $tool)
+                        @php $toolFree = in_array($tool['href'], $freeTools, true); @endphp
                         <div data-tool-card
                              data-href="{{ $tool['href'] }}"
                              data-name="{{ strtolower($tool['name']) }}"
@@ -74,11 +79,14 @@
                              draggable="true"
                              class="group relative cursor-grab overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 active:cursor-grabbing">
                             <div class="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br {{ $tool['from'] }} {{ $tool['to'] }} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-25"></div>
+                            <span class="absolute right-3 top-3 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ $toolFree ? 'bg-emerald-500/20 text-emerald-300' : ($isPro ? 'bg-indigo-500/20 text-indigo-200' : 'bg-white/10 text-slate-400') }}">
+                                @if ($toolFree) Free @elseif ($isPro) Pro @else 🔒 Pro @endif
+                            </span>
                             <a href="{{ $tool['href'] }}" class="relative flex items-start gap-3.5" data-card-link>
                                 <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $tool['from'] }} {{ $tool['to'] }} shadow-lg transition-transform duration-300 group-hover:scale-110">
                                     <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $tool['icon'] }}"></path></svg>
                                 </span>
-                                <span class="min-w-0 flex-1">
+                                <span class="min-w-0 flex-1 pr-10">
                                     <span class="block font-bold text-white">{{ $tool['name'] }}</span>
                                     <span class="mt-1 block text-xs leading-relaxed text-slate-400">{{ $tool['description'] }}</span>
                                 </span>
