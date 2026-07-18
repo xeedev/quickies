@@ -7,12 +7,18 @@ return [
     | Free tier limits
     |--------------------------------------------------------------------------
     |
-    | Anonymous and free users may use each of the tools listed below once per
-    | day. Every other tool requires an active Pro subscription. The daily limit
-    | is enforced server-side (keyed by user id when logged in, otherwise by IP)
-    | so it can't be reset simply by switching browsers within the same day.
+    | With "trial_all_tools" enabled, every tool can be tried once per day by
+    | anonymous and free users — a single free run per tool, per day. After that
+    | run they are asked to upgrade. This lets people try everything before
+    | paying. The limit is enforced server-side (keyed by user id when logged in,
+    | otherwise by IP) so it can't be reset by switching browsers within a day.
+    |
+    | The "free_tools" list is only used when trial_all_tools is false, to
+    | restrict which tools are tryable for free.
     |
     */
+
+    'trial_all_tools' => true,
 
     'free_tools' => [
         '/word-counter',
@@ -22,7 +28,7 @@ return [
         '/password-generator',
     ],
 
-    // Uses allowed per free tool, per identity, per day.
+    // Uses allowed per tool, per identity, per day (before the paywall).
     'daily_limit_per_tool' => 1,
 
     /*
@@ -70,8 +76,8 @@ return [
     ],
 
     'free_features' => [
-        '5 starter tools',
-        '1 use per tool, per day',
+        'Try all 80+ tools',
+        '1 free run per tool, every day',
         'Runs 100% in your browser',
         'No credit card required',
     ],

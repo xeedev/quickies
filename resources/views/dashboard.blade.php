@@ -6,6 +6,7 @@
 @section('content')
     @php
         $freeTools = config('plans.free_tools', []);
+        $trialAll = (bool) config('plans.trial_all_tools', false);
         $isPro = auth()->check() && auth()->user()->hasActiveSubscription();
     @endphp
     {{-- Hero --}}
@@ -71,7 +72,7 @@
                 </h2>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-dnd-group data-category="{{ \Illuminate\Support\Str::slug($category) }}">
                     @foreach ($group as $tool)
-                        @php $toolFree = in_array($tool['href'], $freeTools, true); @endphp
+                        @php $tryable = $trialAll || in_array($tool['href'], $freeTools, true); @endphp
                         <div data-tool-card
                              data-href="{{ $tool['href'] }}"
                              data-name="{{ strtolower($tool['name']) }}"
@@ -79,14 +80,21 @@
                              draggable="true"
                              class="group relative cursor-grab overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 active:cursor-grabbing">
                             <div class="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br {{ $tool['from'] }} {{ $tool['to'] }} opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-25"></div>
-                            <span class="absolute right-3 top-3 z-10 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ $toolFree ? 'bg-emerald-500/20 text-emerald-300' : ($isPro ? 'bg-indigo-500/20 text-indigo-200' : 'bg-white/10 text-slate-400') }}">
-                                @if ($toolFree) Free @elseif ($isPro) Pro @else 🔒 Pro @endif
-                            </span>
+                            @unless ($isPro)
+                                @if ($tryable)
+                                    <span class="absolute right-3 top-3 z-10 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">1 free / day</span>
+                                @else
+                                    <span class="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-300">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        Pro
+                                    </span>
+                                @endif
+                            @endunless
                             <a href="{{ $tool['href'] }}" class="relative flex items-start gap-3.5" data-card-link>
                                 <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $tool['from'] }} {{ $tool['to'] }} shadow-lg transition-transform duration-300 group-hover:scale-110">
                                     <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $tool['icon'] }}"></path></svg>
                                 </span>
-                                <span class="min-w-0 flex-1 pr-10">
+                                <span class="min-w-0 flex-1 {{ $isPro ? '' : 'pr-16' }}">
                                     <span class="block font-bold text-white">{{ $tool['name'] }}</span>
                                     <span class="mt-1 block text-xs leading-relaxed text-slate-400">{{ $tool['description'] }}</span>
                                 </span>

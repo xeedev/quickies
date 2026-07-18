@@ -30,14 +30,18 @@ class GateTool
 
         $slug = '/'.ltrim($request->path(), '/');
         $freeTools = config('plans.free_tools', []);
-        $isFree = in_array($slug, $freeTools, true);
+        $trialAll = (bool) config('plans.trial_all_tools', false);
 
-        // Pro tool -> must subscribe.
-        if (! $isFree) {
+        // Every tool is tryable for free when trial_all_tools is on; otherwise
+        // only the allow-listed tools are.
+        $isTryable = $trialAll || in_array($slug, $freeTools, true);
+
+        // Not tryable at all -> must subscribe.
+        if (! $isTryable) {
             return redirect()->route('upgrade', ['reason' => 'pro', 'tool' => $slug]);
         }
 
-        // Free tool -> enforce the per-day limit.
+        // Enforce the per-day trial limit.
         $identity = $user ? ['user_id' => $user->id] : ['ip' => $request->ip()];
         $today = now()->toDateString();
         $limit = (int) config('plans.daily_limit_per_tool', 1);

@@ -60,7 +60,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('status', 'Welcome to Quickies! 🎉');
+        return redirect()->route('dashboard')->with('status', 'Welcome to Quickies!');
     }
 
     public function logout(Request $request)
