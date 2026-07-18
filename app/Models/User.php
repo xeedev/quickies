@@ -28,6 +28,7 @@ class User extends Authenticatable
         'plan',
         'current_period_ends_at',
         'trial_ends_at',
+        'favorites',
     ];
 
     /**
@@ -52,7 +53,41 @@ class User extends Authenticatable
             'password' => 'hashed',
             'current_period_ends_at' => 'datetime',
             'trial_ends_at' => 'datetime',
+            'favorites' => 'array',
         ];
+    }
+
+    /**
+     * The tool hrefs this user has favourited.
+     *
+     * @return array<int, string>
+     */
+    public function favoriteTools(): array
+    {
+        return array_values($this->favorites ?? []);
+    }
+
+    /**
+     * Toggle a tool href in the user's favourites and persist. Returns true if
+     * the tool is favourited after the toggle, false if it was removed.
+     */
+    public function toggleFavorite(string $href): bool
+    {
+        $favorites = $this->favorites ?? [];
+        $index = array_search($href, $favorites, true);
+
+        if ($index === false) {
+            $favorites[] = $href;
+            $favorited = true;
+        } else {
+            unset($favorites[$index]);
+            $favorited = false;
+        }
+
+        $this->favorites = array_values($favorites);
+        $this->save();
+
+        return $favorited;
     }
 
     public function isAdmin(): bool

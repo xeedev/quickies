@@ -47,6 +47,12 @@
                 <div id="dateResult" class="mt-4 space-y-2 text-sm"></div>
             </div>
         </div>
+
+        {{-- Around the world --}}
+        <div id="tzCard" class="hidden rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl sm:p-6">
+            <h3 class="mb-4 text-base font-bold text-white">Around the world</h3>
+            <div id="tzGrid" class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"></div>
+        </div>
     </div>
 @endsection
 
@@ -63,11 +69,31 @@
         const raw = document.getElementById('tsInput').value.trim();
         const unit = document.getElementById('tsUnit').value;
         const el = document.getElementById('tsResult');
-        if (!raw || isNaN(raw)) { el.innerHTML = '<p class="text-slate-500">Enter a numeric timestamp.</p>'; return; }
+        if (!raw || isNaN(raw)) { el.innerHTML = '<p class="text-slate-500">Enter a numeric timestamp.</p>'; renderTimezones(NaN); return; }
         const ms = unit === 's' ? Number(raw) * 1000 : Number(raw);
         const d = new Date(ms);
-        if (isNaN(d.getTime())) { el.innerHTML = '<p class="text-rose-300">Invalid timestamp.</p>'; return; }
-        el.innerHTML = row('Local', d.toLocaleString()) + row('UTC', d.toUTCString()) + row('ISO 8601', d.toISOString()) + row('Relative', relative(ms));
+        if (isNaN(d.getTime())) { el.innerHTML = '<p class="text-rose-300">Invalid timestamp.</p>'; renderTimezones(NaN); return; }
+        el.innerHTML = row('Local', d.toLocaleString()) + row('UTC', d.toUTCString()) + row('ISO 8601', d.toISOString())
+            + row('Date', d.toDateString()) + row('Time', d.toTimeString().split(' ')[0]) + row('Day of year', dayOfYear(d)) + row('Relative', relative(ms));
+        renderTimezones(ms);
+    }
+
+    function dayOfYear(d) {
+        const start = Date.UTC(d.getUTCFullYear(), 0, 0);
+        return Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - start) / 864e5);
+    }
+
+    const ZONES = [['UTC', 'UTC'], ['Los Angeles', 'America/Los_Angeles'], ['New York', 'America/New_York'], ['London', 'Europe/London'], ['Berlin', 'Europe/Berlin'], ['Kolkata', 'Asia/Kolkata'], ['Singapore', 'Asia/Singapore'], ['Tokyo', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney']];
+    function renderTimezones(ms) {
+        const card = document.getElementById('tzCard');
+        const grid = document.getElementById('tzGrid');
+        if (isNaN(ms)) { card.classList.add('hidden'); return; }
+        card.classList.remove('hidden');
+        grid.innerHTML = ZONES.map(([name, tz]) => {
+            let t = '—';
+            try { t = new Intl.DateTimeFormat('en-GB', { timeZone: tz, dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(ms)); } catch (e) {}
+            return `<div class="rounded-xl border border-white/10 bg-white/5 px-3 py-2"><div class="text-xs text-slate-500">${name}</div><div class="font-mono text-sm text-slate-200">${t}</div></div>`;
+        }).join('');
     }
 
     function fromDate() {

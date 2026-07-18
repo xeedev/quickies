@@ -6,15 +6,22 @@
 <script>
     window.htmlToPdfDoc = async function (innerHtml, filename, options = {}) {
         const { jsPDF } = window.jspdf;
+
+        // Page + margin geometry (points). A4 is 595.28 × 841.89pt.
+        const A4W = 595.28;
+        const margin = options.margin != null ? options.margin : 54; // ~19mm on every side
+        const contentWpt = A4W - margin * 2;
+        const contentWpx = Math.round(contentWpt * 96 / 72); // render width at 96dpi
+
         const iframe = document.createElement('iframe');
-        Object.assign(iframe.style, { position: 'fixed', left: '-10000px', top: '0', width: '794px', height: '1123px', border: '0' });
+        Object.assign(iframe.style, { position: 'fixed', left: '-10000px', top: '0', width: contentWpx + 'px', height: '1123px', border: '0' });
         document.body.appendChild(iframe);
         const doc = iframe.contentDocument;
         const fontFamily = options.fontFamily || "Georgia, 'Times New Roman', serif";
         doc.open();
         doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
             * { box-sizing: border-box; color: #111827; border-color: #cbd5e1; }
-            body { margin: 0; padding: 48px; width: 794px; background: #ffffff; color: #111827; font-family: ${fontFamily}; font-size: 15px; line-height: 1.6; word-wrap: break-word; }
+            body { margin: 0; padding: 0; width: ${contentWpx}px; background: #ffffff; color: #111827; font-family: ${fontFamily}; font-size: 15px; line-height: 1.6; word-wrap: break-word; }
             h1 { font-size: 26px; margin: .6em 0 .3em; } h2 { font-size: 21px; margin: .6em 0 .3em; } h3 { font-size: 17px; margin: .5em 0 .3em; }
             p { margin: 0 0 10px; } a { color: #1d4ed8; text-decoration: underline; }
             ul, ol { padding-left: 24px; margin: 8px 0; } li { margin: 2px 0; }
@@ -30,21 +37,38 @@
         await new Promise((r) => setTimeout(r, 350));
 
         try {
-            const canvas = await html2canvas(doc.body, { scale: 2, backgroundColor: '#ffffff', windowWidth: 794, useCORS: true, imageTimeout: 5000 });
+            const canvas = await html2canvas(doc.body, { scale: 2, backgroundColor: '#ffffff', windowWidth: contentWpx, useCORS: true, imageTimeout: 5000 });
             const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
             const pw = pdf.internal.pageSize.getWidth();
             const ph = pdf.internal.pageSize.getHeight();
-            const imgH = (canvas.height * pw) / canvas.width;
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            let heightLeft = imgH;
-            let pos = 0;
-            pdf.addImage(imgData, 'JPEG', 0, pos, pw, imgH);
-            heightLeft -= ph;
-            while (heightLeft > 0) {
-                pos = heightLeft - imgH;
-                pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', 0, pos, pw, imgH);
-                heightLeft -= ph;
+
+            const drawW = pw - margin * 2;                 // content box width (pt)
+            const pxPerPt = canvas.width / drawW;          // canvas pixels per pt
+            const contentHpx = (ph - margin * 2) * pxPerPt; // content box height per page (px)
+            const totalPages = Math.max(1, Math.ceil(canvas.height / contentHpx));
+            const header = options.header || '';
+            const withNumbers = options.pageNumbers !== false; // page numbers on by default
+
+            for (let i = 0; i < totalPages; i++) {
+                if (i > 0) pdf.addPage();
+
+                const srcY = i * contentHpx;
+                const sliceHpx = Math.min(contentHpx, canvas.height - srcY);
+                const slice = document.createElement('canvas');
+                slice.width = canvas.width;
+                slice.height = sliceHpx;
+                const sctx = slice.getContext('2d');
+                sctx.fillStyle = '#ffffff';
+                sctx.fillRect(0, 0, slice.width, slice.height);
+                sctx.drawImage(canvas, 0, srcY, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx);
+
+                pdf.addImage(slice.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, drawW, sliceHpx / pxPerPt);
+
+                // Running header + page numbers, laid out inside the page margins.
+                pdf.setFontSize(9);
+                pdf.setTextColor(120, 130, 145);
+                if (header) pdf.text(String(header), margin, margin - 20);
+                if (withNumbers) pdf.text(`${i + 1} / ${totalPages}`, pw - margin, ph - margin + 28, { align: 'right' });
             }
             pdf.save(filename);
         } finally {

@@ -17,6 +17,12 @@
             <button id="tabDecode" onclick="setMode('decode')" class="rounded-xl px-5 py-2 text-sm font-semibold text-slate-400 transition">Decode</button>
         </div>
 
+        <div class="mb-5 flex flex-wrap items-center gap-3">
+            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"><input type="checkbox" id="urlSafe" onchange="convert()" class="h-4 w-4 accent-teal-500"> URL-safe</label>
+            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"><input type="checkbox" id="wrap" onchange="convert()" class="h-4 w-4 accent-teal-500"> Wrap 76</label>
+            <button onclick="downloadOut()" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10">Download</button>
+        </div>
+
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <div>
                 <div class="mb-2 flex items-center justify-between">
@@ -58,13 +64,28 @@
     }
 
     function encodeText(str) {
-        return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+        let b64 = btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+        if (document.getElementById('urlSafe').checked) b64 = b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        if (document.getElementById('wrap').checked) b64 = b64.replace(/.{76}/g, '$&\n');
+        return b64;
     }
 
     function decodeText(b64) {
-        const clean = b64.replace(/\s+/g, '');
+        let clean = b64.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        while (clean.length % 4) clean += '=';
         const bytes = Uint8Array.from(atob(clean), (c) => c.charCodeAt(0));
         return new TextDecoder().decode(bytes);
+    }
+
+    function downloadOut() {
+        const val = document.getElementById('outputArea').value;
+        if (!val) return showNotification('Nothing to download.', 'error');
+        const blob = new Blob([val], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = mode === 'encode' ? 'encoded.txt' : 'decoded.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
     }
 
     function convert() {

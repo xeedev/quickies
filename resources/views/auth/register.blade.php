@@ -4,8 +4,8 @@
 
 @section('content')
 <section class="mx-auto flex max-w-md flex-col px-4 py-16 sm:py-24">
-    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl sm:p-8">
-        <h1 class="text-3xl font-bold tracking-tight text-white">Create your account</h1>
+    <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
+        <h1 class="text-3xl font-semibold tracking-tight text-white">Create your account</h1>
         <p class="mt-2 text-sm text-slate-400">Start free — 5 tools, no card required.</p>
 
         @if ($errors->any())
@@ -42,7 +42,7 @@
                     class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-500 transition focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                     placeholder="••••••••">
             </div>
-            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-6 py-3 font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.01] active:scale-95">
+            <button type="submit" class="w-full rounded-xl bg-white px-6 py-3 font-semibold text-slate-900 transition hover:bg-slate-100">
                 Create account
             </button>
         </form>

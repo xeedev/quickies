@@ -25,6 +25,17 @@
             @foreach (['g' => 'global', 'i' => 'ignore case', 'm' => 'multiline', 's' => 'dotall', 'u' => 'unicode', 'y' => 'sticky'] as $f => $desc)
                 <button type="button" onclick="toggleFlag('{{ $f }}')" class="flag-btn rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 font-mono font-semibold text-slate-300 transition hover:bg-white/10" data-flag="{{ $f }}" title="{{ $desc }}">{{ $f }}</button>
             @endforeach
+            <select id="preset" onchange="applyPreset(this.value)" class="ml-auto rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white focus:border-violet-400/60 focus:outline-none">
+                <option value="" class="bg-slate-900">Common patterns…</option>
+                <option value='\b[\w.+-]+@[\w-]+\.[\w.-]+\b|||g|||Email: hello@example.com, support@quickies.dev' class="bg-slate-900">Email address</option>
+                <option value='https?://[^\s]+|||g|||Visit https://quickies.dev/tools?ref=1 or http://example.com' class="bg-slate-900">URL</option>
+                <option value='\b(?:\d{1,3}\.){3}\d{1,3}\b|||g|||Server 192.168.0.1 and 10.0.0.255 are up' class="bg-slate-900">IPv4 address</option>
+                <option value='#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b|||g|||Colors #fff, #1a2b3c and #FF0000' class="bg-slate-900">Hex colour</option>
+                <option value='\b\d{4}-\d{2}-\d{2}\b|||g|||Dates 2026-07-19 and 2025-12-01' class="bg-slate-900">ISO date</option>
+                <option value='[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|||g|||ID 123e4567-e89b-12d3-a456-426614174000' class="bg-slate-900">UUID</option>
+                <option value='&lt;/?[a-zA-Z][^&gt;]*&gt;|||g|||Markup &lt;div class="a"&gt;hi&lt;/div&gt;&lt;br/&gt;' class="bg-slate-900">HTML tag</option>
+                <option value='\+?\d[\d\s().-]{7,}\d|||g|||Call +1 (555) 123-4567 or 020 7946 0958' class="bg-slate-900">Phone number</option>
+            </select>
         </div>
         <p id="regexError" class="mt-2 hidden text-sm font-semibold text-rose-300"></p>
 
@@ -46,6 +57,18 @@
                 <div id="matchList" class="max-h-[240px] space-y-2 overflow-y-auto"></div>
             </div>
         </div>
+
+        {{-- Replace --}}
+        <div class="mt-6 border-t border-white/10 pt-6">
+            <label class="mb-2 block text-sm font-semibold text-slate-200">Replace with <span class="font-normal text-slate-500">— use $1, $2 for capture groups, $&amp; for the whole match</span></label>
+            <input id="replacement" type="text" spellcheck="false" oninput="run()" placeholder="$&amp;"
+                class="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 font-mono text-sm text-white placeholder-slate-500 focus:border-violet-400/60 focus:outline-none">
+            <div class="mb-2 mt-3 flex items-center justify-between">
+                <span class="text-sm font-semibold text-slate-200">Result</span>
+                <button onclick="copyToClipboard(document.getElementById('replaceOut').textContent, 'Result copied')" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Copy</button>
+            </div>
+            <pre id="replaceOut" class="min-h-[60px] overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-white/10 bg-slate-950/50 p-4 font-mono text-sm text-slate-300"></pre>
+        </div>
     </div>
 @endsection
 
@@ -56,6 +79,15 @@
         const set = new Set(input.value.split(''));
         set.has(f) ? set.delete(f) : set.add(f);
         input.value = [...set].join('');
+        run();
+    }
+
+    function applyPreset(v) {
+        if (!v) return;
+        const [pattern, flags, sample] = v.split('|||');
+        document.getElementById('pattern').value = pattern;
+        document.getElementById('flags').value = flags || 'g';
+        if (sample) document.getElementById('testString').value = sample;
         run();
     }
 
@@ -121,6 +153,11 @@
                 <div class="font-mono text-sm text-violet-200">${escapeHtml(m[0])}</div>
                 <div class="mt-1 text-xs text-slate-500">at index ${m.index}</div>${groups}</div>`;
         }).join('') : '<p class="text-sm text-slate-500">No matches found.</p>';
+
+        // Replace result
+        const replacement = document.getElementById('replacement').value;
+        try { document.getElementById('replaceOut').textContent = text.replace(re, replacement); }
+        catch (e) { document.getElementById('replaceOut').textContent = text; }
     }
 
     document.addEventListener('DOMContentLoaded', run);

@@ -1,39 +1,34 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth theme-light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0f172a">
     <meta name="description" content="@yield('description', 'Quickies — 80+ fast, private, browser-based tools for developers, marketers and creators. One subscription, everything unlocked.')">
     <title>@yield('title', 'Quickies') · Quickies</title>
+    <script>(function(){try{var t=localStorage.getItem('quickies:theme');document.documentElement.classList.toggle('theme-light', t!=='dark');}catch(e){}})();</script>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
 </head>
-<body class="relative min-h-screen bg-slate-950 font-sans text-slate-100 antialiased overflow-x-hidden">
-    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"></div>
-        <div class="aurora aurora-1"></div>
-        <div class="aurora aurora-2"></div>
-        <div class="aurora aurora-3"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.6)_100%)]"></div>
-    </div>
+<body class="relative min-h-screen bg-[#0a0b11] font-sans text-slate-100 antialiased overflow-x-hidden">
+    <div class="app-bg pointer-events-none"></div>
 
-    <header class="sticky top-0 z-40">
-        <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <a href="{{ route('home') }}" class="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-xl">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-indigo-500 text-lg font-bold shadow-lg shadow-indigo-500/30">Q</span>
-                <span class="text-lg font-bold tracking-tight">Quickies</span>
+    <header class="app-header sticky top-0 z-40">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+            <a href="{{ route('home') }}" class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-indigo-500 text-lg font-bold text-white shadow-sm">Q</span>
+                <span class="text-[17px] font-semibold tracking-tight">Quickies</span>
             </a>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('pricing') }}" class="hidden rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:text-white sm:block">Pricing</a>
-                <a href="{{ route('dashboard') }}" class="hidden rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:text-white sm:block">Tools</a>
+            <div class="flex items-center gap-1.5">
+                <a href="{{ route('pricing') }}" class="hidden rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white sm:block">Pricing</a>
+                <a href="{{ route('dashboard') }}" class="hidden rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white sm:block">Tools</a>
                 @auth
-                    <a href="{{ route('dashboard') }}" class="rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.03]">Open app</a>
+                    <a href="{{ route('dashboard') }}" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Open app</a>
                 @else
-                    <a href="{{ route('login') }}" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-200 backdrop-blur-xl transition hover:bg-white/10">Log in</a>
-                    <a href="{{ route('register') }}" class="rounded-2xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.03]">Get started</a>
+                    <a href="{{ route('login') }}" class="hidden rounded-lg px-3.5 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white sm:block">Log in</a>
+                    <a href="{{ route('register') }}" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">Get started</a>
                 @endauth
             </div>
         </nav>
@@ -43,10 +38,10 @@
         @yield('content')
     </main>
 
-    <footer class="border-t border-white/10 py-10">
-        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm text-slate-400 sm:flex-row sm:px-6">
+    <footer class="border-t border-white/[0.06] py-10">
+        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm text-slate-500 sm:flex-row sm:px-6">
             <div class="flex items-center gap-2">
-                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-indigo-500 text-sm font-bold">Q</span>
+                <span class="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-500 text-sm font-bold text-white">Q</span>
                 <span>&copy; {{ date('Y') }} Quickies. All rights reserved.</span>
             </div>
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2">

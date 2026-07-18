@@ -4,8 +4,8 @@
 
 @section('content')
 <section class="mx-auto flex max-w-md flex-col px-4 py-16 sm:py-24">
-    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl sm:p-8">
-        <h1 class="text-3xl font-bold tracking-tight text-white">Welcome back</h1>
+    <div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8">
+        <h1 class="text-3xl font-semibold tracking-tight text-white">Welcome back</h1>
         <p class="mt-2 text-sm text-slate-400">Log in to unlock your Quickies toolbox.</p>
 
         @if ($errors->any())
@@ -31,7 +31,7 @@
             <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
                 <input type="checkbox" name="remember" class="h-4 w-4 accent-indigo-500"> Remember me
             </label>
-            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-fuchsia-500 to-indigo-500 px-6 py-3 font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:scale-[1.01] active:scale-95">
+            <button type="submit" class="w-full rounded-xl bg-white px-6 py-3 font-semibold text-slate-900 transition hover:bg-slate-100">
                 Log in
             </button>
         </form>

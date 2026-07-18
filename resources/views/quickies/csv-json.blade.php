@@ -18,6 +18,10 @@
                     <option value="\t" class="bg-slate-900">Tab</option>
                 </select>
             </label>
+            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"><input type="checkbox" id="hasHeader" checked class="h-4 w-4 accent-teal-500"> Header row</label>
+            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"><input type="checkbox" id="pretty" checked class="h-4 w-4 accent-teal-500"> Pretty</label>
+            <label class="flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10">Upload CSV<input type="file" id="fileInput" accept=".csv,.tsv,.txt,text/csv" class="hidden" onchange="loadFile(event)"></label>
+            <button onclick="downloadRight()" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10">Download</button>
             <span id="status" class="ml-auto text-sm font-semibold"></span>
         </div>
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -40,6 +44,28 @@
 <script>
     function delim() { const v = document.getElementById('delim').value; return v === '\\t' ? '\t' : v; }
     function setStatus(ok, msg) { const el = document.getElementById('status'); el.textContent = msg; el.className = `ml-auto text-sm font-semibold ${ok ? 'text-emerald-300' : 'text-rose-300'}`; }
+    let lastFormat = 'json';
+
+    function loadFile(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => { document.getElementById('left').value = ev.target.result; toJson(); showNotification('Loaded ' + f.name, 'success'); };
+        r.readAsText(f);
+        e.target.value = '';
+    }
+
+    function downloadRight() {
+        const val = document.getElementById('right').value;
+        if (!val) return showNotification('Nothing to download.', 'error');
+        const isJson = lastFormat === 'json';
+        const blob = new Blob([val], { type: isJson ? 'application/json' : 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = isJson ? 'data.json' : 'data.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
 
     function parseCsv(text, d) {
         const rows = [];
@@ -66,9 +92,13 @@
         try {
             const rows = parseCsv(document.getElementById('left').value, delim());
             if (!rows.length) throw new Error('No data');
-            const headers = rows[0];
-            const out = rows.slice(1).map((r) => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])));
-            document.getElementById('right').value = JSON.stringify(out, null, 2);
+            const hasHeader = document.getElementById('hasHeader').checked;
+            const headers = hasHeader ? rows[0] : rows[0].map((_, i) => 'col' + (i + 1));
+            const body = hasHeader ? rows.slice(1) : rows;
+            const out = body.map((r) => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])));
+            const pretty = document.getElementById('pretty').checked;
+            document.getElementById('right').value = JSON.stringify(out, null, pretty ? 2 : 0);
+            lastFormat = 'json';
             setStatus(true, `${out.length} rows`);
         } catch (e) { setStatus(false, e.message); }
     }
@@ -86,6 +116,7 @@
             const lines = [headers.map(csvCell).join(d)];
             arr.forEach((o) => lines.push(headers.map((h) => csvCell(o[h])).join(d)));
             document.getElementById('right').value = lines.join('\n');
+            lastFormat = 'csv';
             setStatus(true, `${arr.length} rows`);
         } catch (e) { setStatus(false, e.message); }
     }

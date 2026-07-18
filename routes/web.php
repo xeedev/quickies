@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminController;
 
 // Tool controllers
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ColorPaletteController;
 use App\Http\Controllers\PngToSvgController;
 use App\Http\Controllers\ImageCompressorController;
@@ -102,6 +103,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/billing/checkout/{plan}', [CheckoutController::class, 'checkout'])->name('billing.checkout');
     Route::get('/billing/success', [CheckoutController::class, 'success'])->name('billing.success');
     Route::get('/billing/portal', [CheckoutController::class, 'portal'])->name('billing.portal');
+
+    // Per-user tool favourites
+    Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 });
 
 /*

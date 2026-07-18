@@ -11,10 +11,13 @@
         <label class="mb-2 block text-sm font-semibold text-slate-200">cURL command</label>
         <textarea id="input" rows="6" spellcheck="false" oninput="convert()" class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm text-white transition focus:border-cyan-400/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/30" placeholder="curl -X POST https://api.example.com/users -H 'Content-Type: application/json' -d '{&quot;name&quot;:&quot;Ada&quot;}'"></textarea>
 
-        <div class="mt-4 inline-flex rounded-2xl border border-white/10 bg-white/5 p-1">
-            <button id="tabFetch" onclick="setTab('fetch')" class="rounded-xl px-5 py-2 text-sm font-semibold transition">fetch</button>
-            <button id="tabAxios" onclick="setTab('axios')" class="rounded-xl px-5 py-2 text-sm font-semibold transition">axios</button>
-            <button id="tabNode" onclick="setTab('node')" class="rounded-xl px-5 py-2 text-sm font-semibold transition">node https</button>
+        <div class="mt-4 inline-flex flex-wrap rounded-2xl border border-white/10 bg-white/5 p-1">
+            <button id="tabFetch" onclick="setTab('fetch')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">fetch</button>
+            <button id="tabAxios" onclick="setTab('axios')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">axios</button>
+            <button id="tabNode" onclick="setTab('node')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">node</button>
+            <button id="tabPython" onclick="setTab('python')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">python</button>
+            <button id="tabGo" onclick="setTab('go')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">go</button>
+            <button id="tabPhp" onclick="setTab('php')" class="rounded-xl px-4 py-2 text-sm font-semibold transition">php</button>
         </div>
         <div class="mt-3">
             <div class="mb-2 flex items-center justify-between">
@@ -82,10 +85,54 @@
         return `const https = require('https');\nconst url = new URL(${JSON.stringify(p.url)});\nconst req = https.request(url, {\n  method: ${JSON.stringify(p.method)},\n  headers: ${JSON.stringify(p.headers, null, 2).replace(/\n/g, '\n  ')}\n}, res => {\n  let data = '';\n  res.on('data', c => data += c);\n  res.on('end', () => console.log(data));\n});\n${p.body ? `req.write(${JSON.stringify(p.body)});\n` : ''}req.end();`;
     }
 
+    function pyLiteral(obj) {
+        return JSON.stringify(obj, null, 4).replace(/: true/g, ': True').replace(/: false/g, ': False').replace(/: null/g, ': None');
+    }
+    function toPython(p) {
+        const hasHeaders = Object.keys(p.headers).length;
+        let s = 'import requests\n\n';
+        s += `url = ${JSON.stringify(p.url)}\n`;
+        if (hasHeaders) s += `headers = ${pyLiteral(p.headers)}\n`;
+        const m = p.method.toLowerCase();
+        let call = `requests.${m}(url`;
+        if (hasHeaders) call += ', headers=headers';
+        if (p.body) {
+            let json = null; try { json = JSON.parse(p.body); } catch (e) {}
+            if (json !== null && typeof json === 'object') { s += `payload = ${pyLiteral(json)}\n`; call += ', json=payload'; }
+            else { s += `data = ${JSON.stringify(p.body)}\n`; call += ', data=data'; }
+        }
+        call += ')';
+        s += `\nresponse = ${call}\nprint(response.status_code)\nprint(response.text)`;
+        return s;
+    }
+    function toGo(p) {
+        const bodyLine = p.body ? `bytes.NewBufferString(${JSON.stringify(p.body)})` : 'nil';
+        let s = 'package main\n\nimport (\n\t"bytes"\n\t"fmt"\n\t"io"\n\t"net/http"\n)\n\nfunc main() {\n';
+        s += `\treq, _ := http.NewRequest(${JSON.stringify(p.method)}, ${JSON.stringify(p.url)}, ${bodyLine})\n`;
+        Object.entries(p.headers).forEach(([k, v]) => { s += `\treq.Header.Set(${JSON.stringify(k)}, ${JSON.stringify(v)})\n`; });
+        s += '\tres, err := http.DefaultClient.Do(req)\n\tif err != nil { panic(err) }\n\tdefer res.Body.Close()\n\tbody, _ := io.ReadAll(res.Body)\n\tfmt.Println(string(body))\n}';
+        return s;
+    }
+    function toPhp(p) {
+        let s = '<' + "?php\n$ch = curl_init();\n";
+        s += `curl_setopt($ch, CURLOPT_URL, ${JSON.stringify(p.url)});\n`;
+        s += 'curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n';
+        s += `curl_setopt($ch, CURLOPT_CUSTOMREQUEST, ${JSON.stringify(p.method)});\n`;
+        const hk = Object.entries(p.headers);
+        if (hk.length) {
+            s += 'curl_setopt($ch, CURLOPT_HTTPHEADER, [\n';
+            s += hk.map(([k, v]) => `    ${JSON.stringify(k + ': ' + v)}`).join(',\n');
+            s += '\n]);\n';
+        }
+        if (p.body) s += `curl_setopt($ch, CURLOPT_POSTFIELDS, ${JSON.stringify(p.body)});\n`;
+        s += '$response = curl_exec($ch);\ncurl_close($ch);\necho $response;';
+        return s;
+    }
+
     function setTab(t) {
         tab = t;
-        ['fetch', 'axios', 'node'].forEach((n) => {
-            document.getElementById('tab' + n.charAt(0).toUpperCase() + n.slice(1)).className = `rounded-xl px-5 py-2 text-sm font-semibold transition ${n === t ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow' : 'text-slate-400'}`;
+        ['fetch', 'axios', 'node', 'python', 'go', 'php'].forEach((n) => {
+            document.getElementById('tab' + n.charAt(0).toUpperCase() + n.slice(1)).className = `rounded-xl px-4 py-2 text-sm font-semibold transition ${n === t ? 'bg-gradient-to-r from-sky-500 to-cyan-500 text-white shadow' : 'text-slate-400'}`;
         });
         render();
     }
@@ -97,7 +144,8 @@
     }
     function render() {
         if (!parsed) return;
-        document.getElementById('output').textContent = tab === 'fetch' ? toFetch(parsed) : tab === 'axios' ? toAxios(parsed) : toNode(parsed);
+        const map = { fetch: toFetch, axios: toAxios, node: toNode, python: toPython, go: toGo, php: toPhp };
+        document.getElementById('output').textContent = (map[tab] || toFetch)(parsed);
     }
 
     document.addEventListener('DOMContentLoaded', () => {

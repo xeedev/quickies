@@ -18,20 +18,28 @@
             <button onclick="copyJson()" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Copy as JSON</button>
         </div>
         <div id="params" class="mt-3 overflow-hidden rounded-2xl border border-white/10"></div>
+
+        <div class="mt-6 flex items-center justify-between">
+            <h3 class="text-sm font-bold uppercase tracking-wide text-slate-300">Rebuilt query string</h3>
+            <button onclick="copyToClipboard(document.getElementById('rebuilt').textContent, 'Query string copied')" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">Copy</button>
+        </div>
+        <div class="mt-3 break-all rounded-2xl border border-white/10 bg-slate-950/50 p-3 font-mono text-sm text-blue-100"><span id="rebuilt">—</span></div>
     </div>
 @endsection
 
 @push('scripts')
 <script>
     let currentParams = {};
+    let entries = [];
     const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const attr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
     function parse() {
         const raw = document.getElementById('input').value.trim();
         const partsEl = document.getElementById('urlParts');
         const paramsEl = document.getElementById('params');
-        currentParams = {};
-        if (!raw) { partsEl.innerHTML = ''; paramsEl.innerHTML = ''; return; }
+        currentParams = {}; entries = [];
+        if (!raw) { partsEl.innerHTML = ''; paramsEl.innerHTML = ''; document.getElementById('rebuilt').textContent = '—'; return; }
 
         let search = raw, url = null;
         try { url = new URL(raw); search = url.search; } catch (e) { if (raw.includes('?')) search = raw.slice(raw.indexOf('?')); }
@@ -42,10 +50,22 @@
         } else partsEl.innerHTML = '';
 
         const sp = new URLSearchParams(search.startsWith('?') ? search : '?' + search);
-        const entries = [...sp.entries()];
-        if (!entries.length) { paramsEl.innerHTML = '<div class="p-4 text-sm text-slate-500">No query parameters found.</div>'; return; }
-        entries.forEach(([k, v]) => { currentParams[k] = currentParams[k] !== undefined ? [].concat(currentParams[k], v) : v; });
-        paramsEl.innerHTML = `<table class="w-full text-sm"><thead><tr class="bg-white/5 text-left text-xs uppercase tracking-wide text-slate-400"><th class="px-4 py-2">Key</th><th class="px-4 py-2">Value</th></tr></thead><tbody>${entries.map(([k, v], i) => `<tr class="border-t border-white/10 ${i % 2 ? 'bg-white/[0.02]' : ''}"><td class="px-4 py-2 font-mono text-blue-200">${esc(k)}</td><td class="break-all px-4 py-2 font-mono text-slate-200">${esc(v) || '<span class="text-slate-600">(empty)</span>'}</td></tr>`).join('')}</tbody></table>`;
+        entries = [...sp.entries()];
+        if (!entries.length) { paramsEl.innerHTML = '<div class="p-4 text-sm text-slate-500">No query parameters found.</div>'; document.getElementById('rebuilt').textContent = '—'; return; }
+        paramsEl.innerHTML = `<table class="w-full text-sm"><thead><tr class="bg-white/5 text-left text-xs uppercase tracking-wide text-slate-400"><th class="px-4 py-2">Key</th><th class="px-4 py-2">Value (editable)</th></tr></thead><tbody>${entries.map(([k, v], i) => `<tr class="border-t border-white/10 ${i % 2 ? 'bg-white/[0.02]' : ''}"><td class="px-4 py-2 font-mono text-blue-200">${esc(k)}</td><td class="px-2 py-1"><input data-i="${i}" value="${attr(v)}" oninput="rebuild()" class="w-full rounded-lg bg-transparent px-2 py-1 font-mono text-slate-200 focus:bg-white/5 focus:outline-none"></td></tr>`).join('')}</tbody></table>`;
+        rebuild();
+    }
+
+    function rebuild() {
+        const sp = new URLSearchParams();
+        currentParams = {};
+        document.querySelectorAll('#params input[data-i]').forEach((inp) => {
+            const k = entries[+inp.dataset.i][0];
+            sp.append(k, inp.value);
+            currentParams[k] = currentParams[k] !== undefined ? [].concat(currentParams[k], inp.value) : inp.value;
+        });
+        const qs = sp.toString();
+        document.getElementById('rebuilt').textContent = qs ? '?' + qs : '—';
     }
 
     function copyJson() {
